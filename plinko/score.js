@@ -19,9 +19,9 @@ function runAnalysis() {
 
   // do the same as above using lodash
   // now try different k values
-  _.range(1,20).forEach( k => {
+  _.range(1,15).forEach( k => {
   const accuracy = _.chain(testSet)
-    .filter(testPoint => knn(trainingSet, testPoint[0], k) === testPoint[3])
+    .filter(testPoint => knn(trainingSet, _.initial(testPoint), k) === testPoint[3])
     .size()
     .divide(testSetSize)
     .value();
@@ -31,8 +31,14 @@ function runAnalysis() {
 }
 
 function knn(data, point, k){
+  // assume point has 3 values - it doesn't have last element - result
   return _.chain(data)
-    .map(r => [distance(r[0], point), r[3]])
+    .map(r => {
+      return [
+        distance(_.initial(r), point), 
+        _.last(r)
+      ];      
+    })
     .sortBy(r => r[0])
     .slice(0, k)
     .countBy(r => r[1])
@@ -44,9 +50,15 @@ function knn(data, point, k){
     .value()
 }
 
-
+// to include multiple variables - assume pointA & pointB are array of 
+// variables in place of just numbers
+// we need to apply the pythagoras theorem for multiple dimention 
 function distance(pointA, pointB) {
-  return Math.abs(pointA - pointB);
+  return  _.chain(pointA)
+	.zip(pointB) // zip the same inde values from 2 arrays together in separate arrays
+	.map( ([a, b]) => (a - b) ** 2) // for each zip array get the difference between 1st & 2nd elements and square
+	.sum() // a^2 + b^2 + c^ + ...
+	.value() ** 0.5; // finally take square root to get the result
 }
 
 function splitDataset(data, testCount) {
