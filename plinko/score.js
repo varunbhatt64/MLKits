@@ -1,7 +1,4 @@
 const outputs = [];
-const k = 3;
-const predictionPoint = 300;
-
 
 function onScoreUpdate(dropPosition, bounciness, size, bucketLabel) {
   // Ran every time a balls drops into a bucket
@@ -10,9 +7,32 @@ function onScoreUpdate(dropPosition, bounciness, size, bucketLabel) {
 }
 
 function runAnalysis() {
-  // Write code here to analyze stuff
-  const bucket = _.chain(outputs)
-    .map(r => [distance(r[0]), r[3]])
+  const testSetSize = 100;
+  const [testSet, trainingSet] = splitDataset(outputs, testSetSize); // destucturing syntax
+
+  // let numberCorrect = 0;
+  // testSet.forEach(data => {
+  //   const bucket = knn(trainingSet, data[0]);
+  //   if(bucket === data[3])
+  //     numberCorrect++;    
+  // });
+
+  // do the same as above using lodash
+  // now try different k values
+  _.range(1,20).forEach( k => {
+  const accuracy = _.chain(testSet)
+    .filter(testPoint => knn(trainingSet, testPoint[0], k) === testPoint[3])
+    .size()
+    .divide(testSetSize)
+    .value();
+
+  console.log('For k of', k, 'accuracy is', accuracy);
+})
+}
+
+function knn(data, point, k){
+  return _.chain(data)
+    .map(r => [distance(r[0], point), r[3]])
     .sortBy(r => r[0])
     .slice(0, k)
     .countBy(r => r[1])
@@ -22,11 +42,18 @@ function runAnalysis() {
     .first()
     .parseInt()
     .value()
-
-    console.log('Your ball will probably fall into bucket #'+ bucket);
 }
 
-function distance(point) {
-  return Math.abs(point - predictionPoint);
+
+function distance(pointA, pointB) {
+  return Math.abs(pointA - pointB);
 }
 
+function splitDataset(data, testCount) {
+  const shuffled = _.shuffle(data);
+
+  const testSet = _.slice(shuffled, 0, testCount);
+  const trainingSet = _.slice(shuffled, testCount);
+
+  return [testSet, trainingSet];
+}
