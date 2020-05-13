@@ -8,7 +8,7 @@ function onScoreUpdate(dropPosition, bounciness, size, bucketLabel) {
 
 function runAnalysis() {
   const testSetSize = 100;
-  const [testSet, trainingSet] = splitDataset(minMax(outputs, 3), testSetSize); // destucturing syntax
+  const k = 10;
 
   // let numberCorrect = 0;
   // testSet.forEach(data => {
@@ -19,14 +19,19 @@ function runAnalysis() {
 
   // do the same as above using lodash
   // now try different k values
-  _.range(1,15).forEach( k => {
+
+  // now in place of k, run knn for each individual feature
+  _.range(0,3).forEach( feature => {
+    // feature === 0, feature === 1, feature === 2
+    const data = _.map(outputs, r => [r[feature], _.last(r)])
+    const [testSet, trainingSet] = splitDataset(minMax(data, 1), testSetSize); // destucturing syntax
   const accuracy = _.chain(testSet)
-    .filter(testPoint => knn(trainingSet, _.initial(testPoint), k) === testPoint[3])
+    .filter(testPoint => knn(trainingSet, _.initial(testPoint), k) === _.last(testPoint))
     .size()
     .divide(testSetSize)
     .value();
 
-  console.log('For k of', k, 'accuracy is', accuracy);
+  console.log('For feature of', feature, 'accuracy is', accuracy);
 })
 }
 
