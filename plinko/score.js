@@ -8,7 +8,7 @@ function onScoreUpdate(dropPosition, bounciness, size, bucketLabel) {
 
 function runAnalysis() {
   const testSetSize = 100;
-  const [testSet, trainingSet] = splitDataset(outputs, testSetSize); // destucturing syntax
+  const [testSet, trainingSet] = splitDataset(minMax(outputs, 3), testSetSize); // destucturing syntax
 
   // let numberCorrect = 0;
   // testSet.forEach(data => {
@@ -57,7 +57,7 @@ function distance(pointA, pointB) {
   return  _.chain(pointA)
 	.zip(pointB) // zip the same inde values from 2 arrays together in separate arrays
 	.map( ([a, b]) => (a - b) ** 2) // for each zip array get the difference between 1st & 2nd elements and square
-	.sum() // a^2 + b^2 + c^ + ...
+	.sum() // a^2 + b^2 + c^2 + ...
 	.value() ** 0.5; // finally take square root to get the result
 }
 
@@ -68,4 +68,21 @@ function splitDataset(data, testCount) {
   const trainingSet = _.slice(shuffled, testCount);
 
   return [testSet, trainingSet];
+}
+
+function minMax(data, featureCount){
+  const clonedData = _.cloneDeep(data);
+
+  for(let i = 0; i < featureCount; i++){
+    const column = clonedData.map(r => r[i]);
+
+    const min = _.min(column);
+    const max = _.max(column);
+
+    for(let j = 0; j < featureCount; j++){
+      clonedData[j][i] = (clonedData[j][i] - min) / (max - min);
+    }
+  }
+
+  return clonedData;
 }
